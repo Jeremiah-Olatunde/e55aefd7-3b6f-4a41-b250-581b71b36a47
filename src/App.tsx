@@ -5,7 +5,10 @@ import { useForm } from "@tanstack/react-form";
 //   username: string;
 // };
 
-const UsernameSchema = z.string().min(5);
+const UsernameSchema = z
+  .string()
+  .min(8, "must be longer than 8 characters")
+  .regex(/^\S*$/, "must not contain any whitespace");
 const FormValuesSchema = z.object({
   username: UsernameSchema,
 });
