@@ -1,8 +1,16 @@
+import z from "zod/v4";
 import { useForm } from "@tanstack/react-form";
 
-type FormValues = {
-  username: string;
-};
+// type FormValues = {
+//   username: string;
+// };
+
+const UsernameSchema = z.string().min(5);
+const FormValuesSchema = z.object({
+  username: UsernameSchema,
+});
+
+type FormValues = z.infer<typeof FormValuesSchema>;
 
 export function App() {
   console.log("component render");
@@ -10,6 +18,9 @@ export function App() {
 
   const form = useForm({
     defaultValues,
+    validators: {
+      onChange: FormValuesSchema,
+    },
     onSubmit: async ({ value }) => {
       console.log("submitting form", value);
     },
@@ -31,18 +42,7 @@ export function App() {
           form.handleSubmit();
         }}
       >
-        <form.Field
-          name="username"
-          validators={{
-            onChange: ({ value }) => {
-              const errors = [];
-              if (value === "") errors.push("this field cannot be empty");
-              if (value.length < 5)
-                errors.push("this field must be longer than 5 characters");
-              return errors;
-            },
-          }}
-        >
+        <form.Field name="username">
           {(field) => {
             console.log(field.state.meta.errors);
             return (
@@ -73,14 +73,15 @@ export function App() {
                 />
 
                 <div className="flex flex-col gap-1">
-                  {field.state.meta.errors.map((error) => (
-                    <span
-                      key={error}
-                      className="text-red-500 text-xs font-medium"
-                    >
-                      {error}
-                    </span>
-                  ))}
+                  {field.state.meta.errors.map((error) => {
+                    return (
+                      error && (
+                        <span className="text-xs text-red-500 font-semibold">
+                          {error.message}
+                        </span>
+                      )
+                    );
+                  })}
                 </div>
               </div>
             );
