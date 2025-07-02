@@ -34,8 +34,13 @@ export function App() {
         <form.Field
           name="username"
           validators={{
-            onChange: ({ value }) =>
-              value === "" && "this field cannot be empty",
+            onChange: ({ value }) => {
+              const errors = [];
+              if (value === "") errors.push("this field cannot be empty");
+              if (value.length < 5)
+                errors.push("this field must be longer than 5 characters");
+              return errors;
+            },
           }}
         >
           {(field) => {
@@ -67,11 +72,16 @@ export function App() {
                   `}
                 />
 
-                {field.state.meta.errors.map((error) => (
-                  <span className="text-red-400 text-xs font-medium">
-                    {error}
-                  </span>
-                ))}
+                <div className="flex flex-col gap-1">
+                  {field.state.meta.errors.map((error) => (
+                    <span
+                      key={error}
+                      className="text-red-500 text-xs font-medium"
+                    >
+                      {error}
+                    </span>
+                  ))}
+                </div>
               </div>
             );
           }}
