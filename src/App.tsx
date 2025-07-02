@@ -31,8 +31,15 @@ export function App() {
           form.handleSubmit();
         }}
       >
-        <form.Field name="username">
+        <form.Field
+          name="username"
+          validators={{
+            onChange: ({ value }) =>
+              value === "" && "this field cannot be empty",
+          }}
+        >
           {(field) => {
+            console.log(field.state.meta.errors);
             return (
               <div className="flex flex-col gap-2">
                 <label
@@ -59,6 +66,12 @@ export function App() {
                     
                   `}
                 />
+
+                {field.state.meta.errors.map((error) => (
+                  <span className="text-red-400 text-xs font-medium">
+                    {error}
+                  </span>
+                ))}
               </div>
             );
           }}
