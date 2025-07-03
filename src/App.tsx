@@ -62,7 +62,7 @@ export function App() {
               .map((error) => error.message);
 
             return (
-              <div className="flex flex-col gap-2">
+              <FormFieldWrapper>
                 <FormFieldLabel name={field.name} />
 
                 <FormFieldInput
@@ -73,7 +73,7 @@ export function App() {
                   value={field.state.value}
                 />
                 <FormFieldErrors errors={errors} />
-              </div>
+              </FormFieldWrapper>
             );
           }}
         </form.Field>
@@ -85,7 +85,7 @@ export function App() {
               .map((error) => error.message);
 
             return (
-              <div className="relative flex flex-col gap-2">
+              <FormFieldWrapper>
                 <FormFieldLabel name={field.name} />
 
                 <div className="relative w-full">
@@ -109,7 +109,7 @@ export function App() {
                   </button>
                 </div>
                 <FormFieldErrors errors={errors} />
-              </div>
+              </FormFieldWrapper>
             );
           }}
         </form.Field>
@@ -124,6 +124,10 @@ export function App() {
       </form>
     </section>
   );
+}
+
+function FormFieldWrapper({ children }: { children: React.ReactNode }) {
+  return <div className="relative flex flex-col gap-2">{children}</div>;
 }
 
 function FormFieldInput({
