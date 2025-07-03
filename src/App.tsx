@@ -3,6 +3,11 @@ import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
+const NameSchema = z
+  .string()
+  .min(2, "Must be longer than 2 characters")
+  .regex(/^[\w\s-]*$/, "May not include symbols");
+
 const EmailSchema = z.email("Must be a valid email");
 
 const UsernameSchema = z
@@ -20,6 +25,7 @@ const PasswordSchema = z
   .regex(/^.*[@#$%^&*!)(-]+.*$/, "Must have one symbol");
 
 const FormValuesSchema = z.object({
+  name: NameSchema,
   email: EmailSchema,
   password: PasswordSchema,
   username: UsernameSchema,
@@ -29,10 +35,11 @@ type FormValues = z.infer<typeof FormValuesSchema>;
 
 export function App() {
   console.log("component render");
+  const name = "";
   const email = "";
   const password = "";
   const username = "";
-  const defaultValues: FormValues = { password, username, email };
+  const defaultValues: FormValues = { name, password, username, email };
 
   const [passwordVisible, setPasswordVisible] = useState(false);
 
@@ -82,6 +89,28 @@ export function App() {
           }}
         </form.Field>
 
+        <form.Field name="name" validators={{ onChange: NameSchema }}>
+          {(field) => {
+            const errors = field.state.meta.errors
+              .filter((error) => error !== undefined)
+              .map((error) => error.message);
+
+            return (
+              <FormFieldWrapper>
+                <FormFieldLabel name={field.name} />
+
+                <FormFieldInput
+                  handleChange={field.handleChange}
+                  inputType="name"
+                  invalid={errors.length !== 0}
+                  name={field.name}
+                  value={field.state.value}
+                />
+                <FormFieldErrors errors={errors} />
+              </FormFieldWrapper>
+            );
+          }}
+        </form.Field>
         <form.Field name="username" validators={{ onChange: UsernameSchema }}>
           {(field) => {
             const errors = field.state.meta.errors
