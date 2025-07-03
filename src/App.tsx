@@ -2,6 +2,8 @@ import z from "zod/v4";
 import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
+import { NG } from "country-flag-icons/react/3x2";
+import { getAsYouType, parsePhoneNumber } from "awesome-phonenumber";
 
 const NameSchema = z
   .string()
@@ -24,22 +26,24 @@ const PasswordSchema = z
   .regex(/^.*[a-z]+.*$/, "Must have one lowercase letter")
   .regex(/^.*[@#$%^&*!)(-]+.*$/, "Must have one symbol");
 
-const FormValuesSchema = z.object({
-  name: NameSchema,
-  email: EmailSchema,
-  password: PasswordSchema,
-  username: UsernameSchema,
-});
-
-type FormValues = z.infer<typeof FormValuesSchema>;
+type FormValues = {
+  name: string;
+  email: string;
+  password: string;
+  username: string;
+  telephone: string;
+};
 
 export function App() {
   console.log("component render");
-  const name = "";
-  const email = "";
-  const password = "";
-  const username = "";
-  const defaultValues: FormValues = { name, password, username, email };
+
+  const defaultValues: FormValues = {
+    name: "",
+    email: "",
+    password: "",
+    username: "",
+    telephone: "",
+  };
 
   const [passwordVisible, setPasswordVisible] = useState(false);
 
@@ -111,6 +115,7 @@ export function App() {
             );
           }}
         </form.Field>
+
         <form.Field name="username" validators={{ onChange: UsernameSchema }}>
           {(field) => {
             const errors = field.state.meta.errors
@@ -169,6 +174,61 @@ export function App() {
             );
           }}
         </form.Field>
+
+        <form.Field
+          name="telephone"
+          validators={{
+            onChange: ({ value }) => {
+              const alpha2 = "NG";
+              const parsed = parsePhoneNumber(value, { regionCode: alpha2 });
+              console.log(parsed.valid);
+
+              if (!parsed.valid) {
+                return ["must be a valid phone number"];
+              }
+
+              if (parsed.regionCode !== alpha2) {
+                return ["phone number does not match selected region"];
+              }
+            },
+          }}
+        >
+          {(field) => {
+            const errors = field.state.meta.errors.filter(
+              (error) => error !== undefined,
+            );
+
+            return (
+              <FormFieldWrapper>
+                <FormFieldLabel name={field.name} />
+
+                <div className="flex flex-row gap-2 justify-between">
+                  <FormFieldAlpha2 />
+
+                  <FormFieldInput
+                    handleChange={(value) => {
+                      if (!/^[\d\s-]*$/.test(value)) return;
+
+                      const formatter = getAsYouType("NG");
+                      const formatted = formatter.reset(value);
+                      const parsed = formatter.getPhoneNumber();
+                      field.handleChange(
+                        parsed.valid ? parsed.number.national : formatted,
+                      );
+                    }}
+                    inputType="tel"
+                    invalid={errors.length !== 0}
+                    name={field.name}
+                    value={field.state.value}
+                  />
+                </div>
+
+                <FormFieldErrors errors={errors} />
+              </FormFieldWrapper>
+            );
+          }}
+        </form.Field>
+
         <div className="flex justify-end">
           <button
             className=" bg-stone-500 rounded-md text-sm text-white font-semibold px-4 py-2 capitalize cursor-pointer"
@@ -184,6 +244,20 @@ export function App() {
 
 function FormFieldWrapper({ children }: { children: React.ReactNode }) {
   return <div className="relative flex flex-col gap-2">{children}</div>;
+}
+
+function FormFieldAlpha2() {
+  return (
+    <button
+      type="button"
+      className="aspect-[1.5] cursor-pointer bg-stone-100 rounded-md p-2 pr-0.5 gap-1 flex justify-between items-center"
+    >
+      <div className="grow rounded-full p-0.5">
+        <NG />
+      </div>
+      <ChevronDown className="text-stone-500 size-5" />
+    </button>
+  );
 }
 
 function FormFieldInput({
@@ -208,7 +282,7 @@ function FormFieldInput({
       placeholder={`Enter your ${name.toLowerCase()}`}
       onChange={(event) => handleChange(event.target.value)}
       className={`
-        border-2 
+        grow border-2 
         w-full rounded-md px-2 py-2 font-medium text-stone-500 
         placeholder:font-medium placeholder:text-stone-300 
         focus:outline-none
@@ -252,6 +326,7 @@ function FormFieldErrors({ errors }: { errors: string[] }) {
       </div>
       {rest.length !== 0 && (
         <button
+          type="button"
           onClick={() => setExpanded(!expanded)}
           className="text-red-500 text-xs font-semibold flex"
         >
