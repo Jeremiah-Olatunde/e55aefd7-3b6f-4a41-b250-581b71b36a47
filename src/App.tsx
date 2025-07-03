@@ -15,7 +15,11 @@ const UsernameSchema = z
 const PasswordSchema = z
   .string()
   .min(8, "Must be longer than 8 characters")
-  .regex(/^\S*$/, "Must not contain any whitespace");
+  .regex(/^\S*$/, "Must not contain any whitespace")
+  .regex(/^.*[0-9]+.*$/, "Must have one digit")
+  .regex(/^.*[A-Z]+.*$/, "Must have one uppercase letter")
+  .regex(/^.*[a-z]+.*$/, "Must have one lowercase letter")
+  .regex(/^.*[@#$%^&*!)(-]+.*$/, "Must have one symbol");
 
 const FormValuesSchema = z.object({
   password: PasswordSchema,
