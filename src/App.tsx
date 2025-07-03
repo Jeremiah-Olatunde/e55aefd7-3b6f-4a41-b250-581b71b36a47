@@ -1,5 +1,7 @@
 import z from "zod/v4";
 import { useForm } from "@tanstack/react-form";
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 // type FormValues = {
 //   username: string;
@@ -10,7 +12,13 @@ const UsernameSchema = z
   .min(8, "Must be longer than 8 characters")
   .regex(/^\S*$/, "Must not contain any whitespace");
 
+const PasswordSchema = z
+  .string()
+  .min(8, "Must be longer than 8 characters")
+  .regex(/^\S*$/, "Must not contain any whitespace");
+
 const FormValuesSchema = z.object({
+  password: PasswordSchema,
   username: UsernameSchema,
 });
 
@@ -18,13 +26,14 @@ type FormValues = z.infer<typeof FormValuesSchema>;
 
 export function App() {
   console.log("component render");
-  const defaultValues: FormValues = { username: "" };
+  const password = "";
+  const username = "";
+  const defaultValues: FormValues = { password, username };
+
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   const form = useForm({
     defaultValues,
-    validators: {
-      onChange: FormValuesSchema,
-    },
     onSubmit: async ({ value }) => {
       console.log("submitting form", value);
     },
@@ -46,9 +55,8 @@ export function App() {
           form.handleSubmit();
         }}
       >
-        <form.Field name="username">
+        <form.Field name="username" validators={{ onChange: UsernameSchema }}>
           {(field) => {
-            console.log(field.state.meta.errors);
             const errors = field.state.meta.errors
               .filter((error) => error !== undefined)
               .map((error) => error.message);
@@ -64,6 +72,42 @@ export function App() {
                   name={field.name}
                   value={field.state.value}
                 />
+                <FormFieldErrors errors={errors} />
+              </div>
+            );
+          }}
+        </form.Field>
+
+        <form.Field name="password" validators={{ onChange: PasswordSchema }}>
+          {(field) => {
+            const errors = field.state.meta.errors
+              .filter((error) => error !== undefined)
+              .map((error) => error.message);
+
+            return (
+              <div className="relative flex flex-col gap-2">
+                <FormFieldLabel name={field.name} />
+
+                <div className="relative w-full">
+                  <FormFieldInput
+                    handleChange={field.handleChange}
+                    inputType={passwordVisible ? "text" : "password"}
+                    invalid={errors.length !== 0}
+                    name={field.name}
+                    value={field.state.value}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setPasswordVisible(!passwordVisible)}
+                    className="absolute right-0 top-0  border-2 border-white/0 p-2 h-full flex justify-center items-center"
+                  >
+                    {passwordVisible ? (
+                      <Eye className="size-5 text-stone-200" />
+                    ) : (
+                      <EyeOff className="size-5 text-stone-200" />
+                    )}
+                  </button>
+                </div>
                 <FormFieldErrors errors={errors} />
               </div>
             );
