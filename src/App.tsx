@@ -212,7 +212,7 @@ function FormFieldInput({
         w-full rounded-md px-2 py-2 font-medium text-stone-500 
         placeholder:font-medium placeholder:text-stone-300 
         focus:outline-none
-        ${invalid ? "border-red-500  focus:border-red-500" : "border-stone-200  focus:border-stone-200"}
+        ${invalid ? "bg-red-50 border-red-500  focus:border-red-500" : "border-stone-200  focus:border-stone-200"}
       `}
     />
   );
