@@ -1,7 +1,7 @@
 import z from "zod/v4";
 import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
 
 const NameSchema = z
   .string()
@@ -212,7 +212,7 @@ function FormFieldInput({
         w-full rounded-md px-2 py-2 font-medium text-stone-500 
         placeholder:font-medium placeholder:text-stone-300 
         focus:outline-none
-        ${invalid ? "bg-red-50 border-red-500  focus:border-red-500" : "border-stone-200  focus:border-stone-200"}
+        ${invalid ? "border-red-500  focus:border-red-500" : "border-stone-200  focus:border-stone-200"}
       `}
     />
   );
@@ -227,15 +227,42 @@ function FormFieldLabel({ name }: { name: string }) {
 }
 
 function FormFieldErrors({ errors }: { errors: string[] }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (errors.length === 0) {
+    return;
+  }
+
+  const [first, ...rest] = errors;
+
   return (
-    <div className="flex flex-col gap-1">
-      {errors.map((error) => {
-        return (
-          <span key={error} className="text-xs text-red-500 font-semibold">
-            {error}*
-          </span>
-        );
-      })}
+    <div className="flex justify-between items-start gap-1 py-1 px-2 bg-red-50 rounded-xs">
+      <div className="grow flex flex-col gap-1">
+        <span key={first} className="text-xs text-red-500 font-semibold">
+          {first}*
+        </span>
+        {expanded &&
+          rest.map((error) => {
+            return (
+              <span key={error} className="text-xs text-red-500 font-semibold">
+                {error}*
+              </span>
+            );
+          })}
+      </div>
+      {rest.length !== 0 && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="text-red-500 text-xs font-semibold flex"
+        >
+          <span className="">({rest.length + 1})</span>
+          {expanded ? (
+            <ChevronUp className="size-5" />
+          ) : (
+            <ChevronDown className="size-5" />
+          )}
+        </button>
+      )}
     </div>
   );
 }
