@@ -3,9 +3,7 @@ import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
-// type FormValues = {
-//   username: string;
-// };
+const EmailSchema = z.email("Must be a valid email");
 
 const UsernameSchema = z
   .string()
@@ -22,6 +20,7 @@ const PasswordSchema = z
   .regex(/^.*[@#$%^&*!)(-]+.*$/, "Must have one symbol");
 
 const FormValuesSchema = z.object({
+  email: EmailSchema,
   password: PasswordSchema,
   username: UsernameSchema,
 });
@@ -30,9 +29,10 @@ type FormValues = z.infer<typeof FormValuesSchema>;
 
 export function App() {
   console.log("component render");
+  const email = "";
   const password = "";
   const username = "";
-  const defaultValues: FormValues = { password, username };
+  const defaultValues: FormValues = { password, username, email };
 
   const [passwordVisible, setPasswordVisible] = useState(false);
 
@@ -59,6 +59,29 @@ export function App() {
           form.handleSubmit();
         }}
       >
+        <form.Field name="email" validators={{ onChange: EmailSchema }}>
+          {(field) => {
+            const errors = field.state.meta.errors
+              .filter((error) => error !== undefined)
+              .map((error) => error.message);
+
+            return (
+              <FormFieldWrapper>
+                <FormFieldLabel name={field.name} />
+
+                <FormFieldInput
+                  handleChange={field.handleChange}
+                  inputType="email"
+                  invalid={errors.length !== 0}
+                  name={field.name}
+                  value={field.state.value}
+                />
+                <FormFieldErrors errors={errors} />
+              </FormFieldWrapper>
+            );
+          }}
+        </form.Field>
+
         <form.Field name="username" validators={{ onChange: UsernameSchema }}>
           {(field) => {
             const errors = field.state.meta.errors
