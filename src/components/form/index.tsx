@@ -1,19 +1,33 @@
-import { NG } from "country-flag-icons/react/3x2";
-import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
+import Flag from "react-world-flags";
+import { pipe } from "fp-ts/function";
+import * as option from "fp-ts/Option";
+import { type Option } from "fp-ts/Option";
+import { ChevronDown, ChevronUp, Globe } from "lucide-react";
 
 export function FormFieldWrapper({ children }: { children: React.ReactNode }) {
   return <div className="relative flex flex-col gap-2">{children}</div>;
 }
 
-export function FormFieldAlpha2() {
+export function FormFieldAlpha2({
+  alpha2,
+  handleClick,
+}: {
+  alpha2: Option<string>;
+  handleClick: () => void;
+}) {
   return (
     <button
       type="button"
+      onClick={handleClick}
       className="aspect-[1.5] cursor-pointer bg-stone-100 rounded-md p-2 pr-0.5 gap-1 flex justify-between items-center"
     >
-      <div className="grow rounded-full p-0.5">
-        <NG />
+      <div className="grow rounded-full p-0.5 flex justify-center items-center h-full">
+        {pipe(
+          alpha2,
+          option.map((a2) => <Flag code={a2} style={{ width: "24px" }} />),
+          option.getOrElse(() => <Globe className="text-stone-500" />),
+        )}
       </div>
       <ChevronDown className="text-stone-500 size-5" />
     </button>

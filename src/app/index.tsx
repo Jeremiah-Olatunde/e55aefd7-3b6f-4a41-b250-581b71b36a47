@@ -1,8 +1,17 @@
 import z from "zod/v4";
+import * as array from "fp-ts/Array";
+import * as option from "fp-ts/Option";
+import { type Option } from "fp-ts/Option";
+import * as either from "fp-ts/Either";
+import { type Either } from "fp-ts/Either";
 import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { getAsYouType, parsePhoneNumber } from "awesome-phonenumber";
+import {
+  getAsYouType,
+  getSupportedRegionCodes,
+  parsePhoneNumber,
+} from "awesome-phonenumber";
 import {
   FormFieldAlpha2,
   FormFieldErrors,
@@ -10,6 +19,9 @@ import {
   FormFieldLabel,
   FormFieldWrapper,
 } from "../components/form";
+import { constUndefined, flow, pipe } from "fp-ts/function";
+import { parseTelephone } from "../lib/validate-telephone";
+import { get } from "fp-ts-std/Struct";
 
 const NameSchema = z
   .string()
@@ -51,6 +63,8 @@ export function App() {
     telephone: "",
   };
 
+  const alpha2s: readonly string[] = getSupportedRegionCodes();
+  const [alpha2, setAlpha2] = useState<Option<string>>(option.none);
   const [passwordVisible, setPasswordVisible] = useState(false);
 
   const form = useForm({
@@ -185,17 +199,15 @@ export function App() {
           name="telephone"
           validators={{
             onChange: ({ value }) => {
-              const alpha2 = "NG";
-              const parsed = parsePhoneNumber(value, { regionCode: alpha2 });
-              console.log(parsed.valid);
+              const tag = "ErrorAbsentAlpha2";
+              const ErrorAbsentAlpha2 = { tag } as const;
 
-              if (!parsed.valid) {
-                return ["must be a valid phone number"];
-              }
-
-              if (parsed.regionCode !== alpha2) {
-                return ["phone number does not match selected region"];
-              }
+              return pipe(
+                alpha2,
+                either.fromOption(() => ErrorAbsentAlpha2),
+                either.flatMap(parseTelephone(value)),
+                either.foldW(flow(get("tag"), array.of), constUndefined),
+              );
             },
           }}
         >
@@ -209,17 +221,39 @@ export function App() {
                 <FormFieldLabel name={field.name} />
 
                 <div className="flex flex-row gap-2 justify-between">
-                  <FormFieldAlpha2 />
+                  <FormFieldAlpha2
+                    alpha2={alpha2}
+                    handleClick={() => {
+                      const index = Math.floor(Math.random() * alpha2s.length);
+                      const selected = alpha2s[index];
+                      console.log(selected);
+                      setAlpha2(option.some("NG"));
+                    }}
+                  />
 
                   <FormFieldInput
                     handleChange={(value) => {
                       if (!/^[\d\s-]*$/.test(value)) return;
 
-                      const formatter = getAsYouType("NG");
-                      const formatted = formatter.reset(value);
-                      const parsed = formatter.getPhoneNumber();
-                      field.handleChange(
-                        parsed.valid ? parsed.number.national : formatted,
+                      const input = value;
+                      const tag = "ErrorAbsentAlpha2";
+                      const ErrorAbsentAlpha2 = { tag, input } as const;
+
+                      const inspect = pipe(
+                        alpha2,
+                        either.fromOption(() => ErrorAbsentAlpha2),
+                        either.flatMap(parseTelephone(value)),
+                      );
+
+                      console.log(inspect);
+                      pipe(
+                        alpha2,
+                        either.fromOption(() => ErrorAbsentAlpha2),
+                        either.flatMap(parseTelephone(value)),
+                        either.foldW(
+                          flow(get("input"), field.handleChange),
+                          flow(get("national"), field.handleChange),
+                        ),
                       );
                     }}
                     inputType="tel"
