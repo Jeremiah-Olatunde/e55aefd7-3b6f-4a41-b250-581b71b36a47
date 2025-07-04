@@ -3,15 +3,9 @@ import * as array from "fp-ts/Array";
 import * as option from "fp-ts/Option";
 import { type Option } from "fp-ts/Option";
 import * as either from "fp-ts/Either";
-import { type Either } from "fp-ts/Either";
 import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import {
-  getAsYouType,
-  getSupportedRegionCodes,
-  parsePhoneNumber,
-} from "awesome-phonenumber";
 import {
   FormFieldAlpha2,
   FormFieldErrors,
@@ -63,8 +57,8 @@ export function App() {
     telephone: "",
   };
 
-  const alpha2s: readonly string[] = getSupportedRegionCodes();
-  const [alpha2, setAlpha2] = useState<Option<string>>(option.none);
+  const alpha2s: readonly string[] = ["CM", "NG"];
+  const [alpha2, setAlpha2] = useState<Option<string>>(option.some("NG"));
   const [passwordVisible, setPasswordVisible] = useState(false);
 
   const form = useForm({
@@ -202,12 +196,16 @@ export function App() {
               const tag = "ErrorAbsentAlpha2";
               const ErrorAbsentAlpha2 = { tag } as const;
 
-              return pipe(
+              console.log("validating");
+
+              const result = pipe(
                 alpha2,
                 either.fromOption(() => ErrorAbsentAlpha2),
                 either.flatMap(parseTelephone(value)),
                 either.foldW(flow(get("tag"), array.of), constUndefined),
               );
+
+              return result;
             },
           }}
         >
@@ -224,43 +222,44 @@ export function App() {
                   <FormFieldAlpha2
                     alpha2={alpha2}
                     handleClick={() => {
-                      const index = Math.floor(Math.random() * alpha2s.length);
-                      const selected = alpha2s[index];
-                      console.log(selected);
-                      setAlpha2(option.some("NG"));
-                    }}
-                  />
-
-                  <FormFieldInput
-                    handleChange={(value) => {
-                      if (!/^[\d\s-]*$/.test(value)) return;
-
-                      const input = value;
-                      const tag = "ErrorAbsentAlpha2";
-                      const ErrorAbsentAlpha2 = { tag, input } as const;
-
-                      const inspect = pipe(
-                        alpha2,
-                        either.fromOption(() => ErrorAbsentAlpha2),
-                        either.flatMap(parseTelephone(value)),
-                      );
-
-                      console.log(inspect);
-                      pipe(
-                        alpha2,
-                        either.fromOption(() => ErrorAbsentAlpha2),
-                        either.flatMap(parseTelephone(value)),
-                        either.foldW(
-                          flow(get("input"), field.handleChange),
-                          flow(get("national"), field.handleChange),
+                      setAlpha2(
+                        pipe(
+                          alpha2,
+                          option.map((a) => (a === "NG" ? "CM" : "NG")),
                         ),
                       );
                     }}
-                    inputType="tel"
-                    invalid={errors.length !== 0}
-                    name={field.name}
-                    value={field.state.value}
                   />
+
+                  {option.isSome(alpha2) ? (
+                    <FormFieldInput
+                      handleChange={(value) => {
+                        if (!/^[\d\s-]*$/.test(value)) return;
+
+                        const input = value;
+                        const tag = "ErrorAbsentAlpha2";
+                        const ErrorAbsentAlpha2 = { tag, input } as const;
+
+                        pipe(
+                          alpha2,
+                          either.fromOption(() => ErrorAbsentAlpha2),
+                          either.flatMap(parseTelephone(value)),
+                          either.foldW(
+                            flow(get("input"), field.handleChange),
+                            flow(get("national"), field.handleChange),
+                          ),
+                        );
+                      }}
+                      inputType="tel"
+                      invalid={errors.length !== 0}
+                      name={field.name}
+                      value={field.state.value}
+                    />
+                  ) : (
+                    <div className="border-2 border-stone-100 cursor-not-allowed bg-stone-50 rounded-lg p-2 font-medium text-stone-500 grow">
+                      Please select a country
+                    </div>
+                  )}
                 </div>
 
                 <FormFieldErrors errors={errors} />

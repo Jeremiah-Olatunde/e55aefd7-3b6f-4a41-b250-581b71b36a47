@@ -20,7 +20,7 @@ export function FormFieldAlpha2({
     <button
       type="button"
       onClick={handleClick}
-      className="aspect-[1.5] cursor-pointer bg-stone-100 rounded-md p-2 pr-0.5 gap-1 flex justify-between items-center"
+      className="border-2 border-stone-200 aspect-[1.5] cursor-pointer bg-stone-100 rounded-md p-2 pr-0.5 gap-1 flex justify-between items-center"
     >
       <div className="grow rounded-full p-0.5 flex justify-center items-center h-full">
         {pipe(
