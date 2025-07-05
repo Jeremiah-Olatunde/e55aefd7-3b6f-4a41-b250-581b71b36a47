@@ -3,7 +3,7 @@ import * as array from "fp-ts/Array";
 import * as option from "fp-ts/Option";
 import { type Option } from "fp-ts/Option";
 import * as either from "fp-ts/Either";
-import { useForm } from "@tanstack/react-form";
+import { useForm, useStore } from "@tanstack/react-form";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import {
@@ -57,7 +57,6 @@ export function App() {
     telephone: "",
   };
 
-  const alpha2s: readonly string[] = ["CM", "NG"];
   const [alpha2, setAlpha2] = useState<Option<string>>(option.some("NG"));
   const [passwordVisible, setPasswordVisible] = useState(false);
 
@@ -67,6 +66,8 @@ export function App() {
       console.log("submitting form", value);
     },
   });
+
+  console.log(useStore(form.store, (state) => state.canSubmit));
 
   return (
     <section className="font-sora h-screen w-screen p-6 flex flex-col gap-8">
